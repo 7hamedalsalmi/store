@@ -114,7 +114,7 @@
     <nav class="bottom-nav">
         <div class="nav-item active" onclick="switchTab('home', this)"><span>🏠</span><span>الرئيسية</span></div>
         <div class="nav-item" onclick="switchTab('add', this)"><span>➕</span><span>إضافة</span></div>
-        <div class="nav-item" onclick="switchTab('auth', this)"><span>👤</span><span>حسابي</span></div>
+        <div class="nav-item" onclick="switchTab('user', this)"><span>👤</span><span>حسابي</span></div>
     </nav>
 
     <div class="container">
@@ -132,13 +132,13 @@
         </section>
 
         <section id="tab-add" class="section">
-            <div class="form-box" id="add-form-container">
+            <div class="form-box" id="add-form-wrapper">
                 <h2 style="text-align:center;">إضافة منتج جديد</h2>
                 <form id="pForm">
                     <input type="hidden" id="editId">
                     <input type="text" class="input-f" id="pName" placeholder="اسم المنتج" required>
                     <input type="number" step="0.001" class="input-f" id="pPrice" placeholder="السعر" required>
-                    <input type="number" class="input-f" id="pQty" placeholder="الكمية المتوفرة" required>
+                    <input type="number" class="input-f" id="pQty" placeholder="الكمية" required>
                     <select class="input-f" id="pCat">
                         <option value="مأكولات">مأكولات</option>
                         <option value="أزياء">أزياء</option>
@@ -146,29 +146,27 @@
                     </select>
                     <input type="text" class="input-f" id="pTel" placeholder="رقم الهاتف (968xxxx)" required>
                     <input type="file" id="pFile" accept="image/*" style="display:none">
-                    <button type="button" onclick="document.getElementById('pFile').click()" style="width:100%; padding:12px; border:2px dashed var(--brand); border-radius:12px; background:none; color:var(--brand); font-weight:bold; margin-bottom:15px; cursor:pointer;">📸 اختر صورة</button>
+                    <button type="button" onclick="document.getElementById('pFile').click()" class="input-f" style="cursor:pointer; border:2px dashed var(--brand);">📸 اختر صورة</button>
                     <img id="preview" style="width:100%; border-radius:15px; display:none; margin-bottom:15px;">
-                    <button type="submit" id="submitBtn" style="width:100%; padding:15px; background:var(--brand); color:white; border:none; border-radius:12px; font-weight:bold; cursor:pointer;">نشر المنتج</button>
+                    <button type="submit" id="submitBtn" class="input-f" style="background:var(--brand); color:white; font-weight:bold; cursor:pointer;">نشر المنتج</button>
                 </form>
             </div>
-            <div id="add-login-msg" style="display:none; text-align:center; padding:50px;">
-                <h3>يرجى تسجيل الدخول أولاً لتتمكن من إضافة منتجات 🔐</h3>
-                <button onclick="switchTab('auth', document.querySelectorAll('.nav-item')[2])" style="padding:10px 20px; background:var(--brand); color:white; border:none; border-radius:10px; cursor:pointer;">انتقل لصفحة الدخول</button>
+            <div id="login-msg" style="display:none; text-align:center; padding:50px;">
+                <h3>يرجى تسجيل الدخول أولاً لإضافة منتجات 🔐</h3>
             </div>
         </section>
 
-        <section id="tab-auth" class="section">
-            <div class="form-box" id="auth-ui">
+        <section id="tab-user" class="section">
+            <div class="form-box" id="auth-box">
                 <h2 style="text-align:center;">دخول البائعين</h2>
                 <input type="email" id="email" class="input-f" placeholder="البريد الإلكتروني">
                 <input type="password" id="pass" class="input-f" placeholder="كلمة المرور">
                 <button onclick="handleAuth()" class="input-f" style="background:var(--brand); color:white; font-weight:bold; cursor:pointer;">دخول / إنشاء حساب</button>
-                <p style="font-size:0.8rem; text-align:center; opacity:0.7;">* إذا لم يكن لديك حساب، سيتم إنشاء واحد تلقائياً.</p>
+                <p style="text-align:center; font-size:0.8rem; opacity:0.7;">* إذا لم يكن لديك حساب، سيتم إنشاء واحد تلقائياً.</p>
             </div>
-            <div id="user-ui" style="display:none; text-align:center;" class="form-box">
-                <h3 id="user-display-email"></h3>
-                <p>أنت الآن في وضع البائع، يمكنك إدارة منتجاتك.</p>
-                <button onclick="firebase.auth().signOut()" style="width:100%; padding:12px; background:#ef4444; color:white; border:none; border-radius:12px; font-weight:bold; cursor:pointer;">تسجيل الخروج</button>
+            <div id="user-info" style="display:none; text-align:center;" class="form-box">
+                <h3 id="user-email"></h3>
+                <button onclick="firebase.auth().signOut()" class="input-f" style="background:#ef4444; color:white; font-weight:bold; cursor:pointer;">تسجيل الخروج</button>
             </div>
         </section>
     </div>
@@ -193,20 +191,20 @@
         let currentCat = "الكل";
         let currentUser = null;
 
-        // مراقبة حالة المستخدم
+        // إدارة حالة المستخدم
         auth.onAuthStateChanged(user => {
             currentUser = user;
             if(user) {
-                document.getElementById('auth-ui').style.display = 'none';
-                document.getElementById('user-ui').style.display = 'block';
-                document.getElementById('user-display-email').innerText = user.email;
-                document.getElementById('add-form-container').style.display = 'block';
-                document.getElementById('add-login-msg').style.display = 'none';
+                document.getElementById('auth-box').style.display = 'none';
+                document.getElementById('user-info').style.display = 'block';
+                document.getElementById('user-email').innerText = user.email;
+                document.getElementById('add-form-wrapper').style.display = 'block';
+                document.getElementById('login-msg').style.display = 'none';
             } else {
-                document.getElementById('auth-ui').style.display = 'block';
-                document.getElementById('user-ui').style.display = 'none';
-                document.getElementById('add-form-container').style.display = 'none';
-                document.getElementById('add-login-msg').style.display = 'block';
+                document.getElementById('auth-box').style.display = 'block';
+                document.getElementById('user-info').style.display = 'none';
+                document.getElementById('add-form-wrapper').style.display = 'none';
+                document.getElementById('login-msg').style.display = 'block';
             }
             render();
         });
@@ -214,7 +212,7 @@
         function handleAuth() {
             const e = document.getElementById('email').value;
             const p = document.getElementById('pass').value;
-            if(!e || !p) return alert("يرجى إدخال البريد وكلمة المرور");
+            if(!e || !p) return alert("يرجى ملء البيانات");
             auth.signInWithEmailAndPassword(e, p).catch(() => auth.createUserWithEmailAndPassword(e, p));
         }
 
@@ -223,13 +221,12 @@
             document.getElementById('tab-'+tab).classList.add('active');
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             el.classList.add('active');
-            window.scrollTo(0,0);
         }
 
-        document.getElementById('pFile').onchange = function(e) {
+        document.getElementById('pFile').onchange = (e) => {
             const reader = new FileReader();
-            reader.onload = function(event) { 
-                currentImg = event.target.result; 
+            reader.onload = (ev) => { 
+                currentImg = ev.target.result; 
                 document.getElementById('preview').src = currentImg; 
                 document.getElementById('preview').style.display = 'block'; 
             };
@@ -238,31 +235,20 @@
 
         document.getElementById('pForm').onsubmit = function(e) {
             e.preventDefault();
-            if(!currentUser) return alert("يجب تسجيل الدخول أولاً");
-
-            const editId = document.getElementById('editId').value || Date.now();
-            const btn = document.getElementById('submitBtn');
-            btn.innerText = "جاري النشر...";
-            btn.disabled = true;
-
-            const productData = {
-                id: parseInt(editId),
-                uid: currentUser.uid, // ربط المنتج بالمستخدم الحالي
+            if(!currentUser) return alert("سجل دخولك أولاً");
+            const id = document.getElementById('editId').value || Date.now();
+            db.ref('products/' + id).update({
+                id: parseInt(id),
+                uid: currentUser.uid,
                 name: document.getElementById('pName').value,
                 price: document.getElementById('pPrice').value,
                 qty: document.getElementById('pQty').value,
                 cat: document.getElementById('pCat').value,
                 tel: document.getElementById('pTel').value,
-                img: currentImg || "",
-                ratings: []
-            };
-
-            db.ref('products/' + editId).update(productData).then(() => {
+                img: currentImg
+            }).then(() => {
                 alert("تم بنجاح!");
-                btn.innerText = "نشر المنتج";
-                btn.disabled = false;
                 this.reset();
-                document.getElementById('editId').value = "";
                 document.getElementById('preview').style.display = 'none';
                 switchTab('home', document.querySelectorAll('.nav-item')[0]);
             });
@@ -280,56 +266,44 @@
             return (ratings.reduce((a,b)=>a+b,0) / ratings.length).toFixed(1);
         }
 
-        function listenToData() {
-            db.ref('products').on('value', (snapshot) => {
-                const data = snapshot.val();
+        function render() {
+            db.ref('products').on('value', snap => {
+                const data = snap.val();
                 products = data ? Object.values(data) : [];
-                render();
+                const search = document.getElementById('searchBar').value.toLowerCase();
+                const filtered = products.filter(p => (currentCat === "الكل" || p.cat === currentCat) && p.name.toLowerCase().includes(search));
+                
+                document.getElementById('productGrid').innerHTML = filtered.map(item => {
+                    const avg = getAvg(item.ratings);
+                    return `
+                    <div class="card">
+                        <img src="${item.img || ''}">
+                        ${currentUser && item.uid === currentUser.uid ? `
+                            <div style="position:absolute; top:10px; left:10px; display:flex; gap:5px;">
+                                <button onclick="editP(${item.id})" style="background:white; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer;">✎</button>
+                                <button onclick="deleteP(${item.id})" style="background:#ff4757; color:white; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer;">×</button>
+                            </div>
+                        ` : ''}
+                        <div class="card-body">
+                            <h3 style="margin:0;">${item.name}</h3>
+                            <div class="stars-display">${'★'.repeat(Math.round(avg))}${ '☆'.repeat(5-Math.round(avg)) } (${avg})</div>
+                            <div class="price-tag">${parseFloat(item.price).toFixed(3)} ر.ع</div>
+                            <div class="qty-info">${item.qty <= 0 ? 'نفد ❌' : `متوفر: ${item.qty}`}</div>
+                            <div class="rating-input">
+                                <span onclick="addRating(${item.id}, 5)">★</span><span onclick="addRating(${item.id}, 4)">★</span>
+                                <span onclick="addRating(${item.id}, 3)">★</span><span onclick="addRating(${item.id}, 2)">★</span><span onclick="addRating(${item.id}, 1)">★</span>
+                            </div>
+                            <div class="btn-group">
+                                <a href="https://wa.me/${item.tel}" class="btn-action bg-wa">واتساب</a>
+                                <a href="tel:${item.tel}" class="btn-action bg-ph">اتصال</a>
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('');
             });
         }
 
-        function render() {
-            const grid = document.getElementById('productGrid');
-            const search = document.getElementById('searchBar').value.toLowerCase();
-            let filtered = products.filter(p => (currentCat === "الكل" || p.cat === currentCat) && p.name.toLowerCase().includes(search));
-            
-            grid.innerHTML = filtered.map(item => {
-                const avg = getAvg(item.ratings);
-                // إظهار أزرار التحكم فقط لمالك المنتج
-                const controls = (currentUser && item.uid === currentUser.uid) ? `
-                    <div style="position:absolute; top:10px; left:10px; display:flex; gap:5px;">
-                        <button onclick="editP(${item.id})" style="background:white; border:none; width:30px; height:30px; border-radius:50%; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2);">✎</button>
-                        <button onclick="deleteP(${item.id})" style="background:#ff4757; color:white; border:none; width:30px; height:30px; border-radius:50%; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2);">×</button>
-                    </div>
-                ` : '';
-
-                return `
-                <div class="card">
-                    <img src="${item.img || 'https://via.placeholder.com/200'}">
-                    ${controls}
-                    <div class="card-body">
-                        <h3 style="margin:0;">${item.name}</h3>
-                        <div class="stars-display">
-                            ${'★'.repeat(Math.round(avg))}${'☆'.repeat(5 - Math.round(avg))} (${avg})
-                        </div>
-                        <div class="price-tag">${parseFloat(item.price).toFixed(3)} ر.ع</div>
-                        <div class="qty-info">${item.qty <= 0 ? 'نفد ❌' : `متوفر: ${item.qty}`}</div>
-                        <div class="rating-input">
-                            <span onclick="addRating(${item.id}, 5)">★</span>
-                            <span onclick="addRating(${item.id}, 4)">★</span>
-                            <span onclick="addRating(${item.id}, 3)">★</span>
-                            <span onclick="addRating(${item.id}, 2)">★</span>
-                            <span onclick="addRating(${item.id}, 1)">★</span>
-                        </div>
-                        <div class="btn-group">
-                            <a href="https://wa.me/${item.tel}" class="btn-action bg-wa">واتساب</a>
-                            <a href="tel:${item.tel}" class="btn-action bg-ph">اتصال</a>
-                        </div>
-                    </div>
-                </div>
-            `}).join('');
-        }
-
+        function deleteP(id) { if(confirm("حذف؟")) db.ref('products/' + id).remove(); }
         function editP(id) {
             const p = products.find(i => i.id === id);
             document.getElementById('editId').value = p.id;
@@ -339,19 +313,12 @@
             document.getElementById('pCat').value = p.cat;
             document.getElementById('pTel').value = p.tel;
             currentImg = p.img;
-            document.getElementById('preview').src = p.img;
-            document.getElementById('preview').style.display = 'block';
             switchTab('add', document.querySelectorAll('.nav-item')[1]);
         }
-
-        function deleteP(id) { if(confirm("هل أنت متأكد من حذف هذا المنتج؟")) db.ref('products/' + id).remove(); }
         function filterCat(c, el) { currentCat = c; document.querySelectorAll('.cat-chip').forEach(i => i.classList.remove('active')); el.classList.add('active'); render(); }
-        function toggleTheme() {
-            const t = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-            document.body.setAttribute('data-theme', t);
-        }
+        function toggleTheme() { document.body.setAttribute('data-theme', document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); }
 
-        window.onload = listenToData;
+        window.onload = render;
     </script>
 </body>
 </html>
