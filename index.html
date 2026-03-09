@@ -153,7 +153,6 @@
             </div>
             <div id="login-msg" style="display:none; text-align:center; padding:50px;">
                 <h3>يرجى تسجيل الدخول أولاً لإضافة منتجاتك 🔐</h3>
-                <button onclick="switchTab('auth', document.querySelectorAll('.nav-item')[2])" style="background:var(--brand); color:white; border:none; padding:10px 20px; border-radius:10px; cursor:pointer;">انتقل لصفحة الدخول</button>
             </div>
         </section>
 
@@ -163,6 +162,7 @@
                 <input type="email" id="email" class="input-f" placeholder="البريد الإلكتروني">
                 <input type="password" id="pass" class="input-f" placeholder="كلمة المرور">
                 <button onclick="handleAuth()" class="btn-submit">دخول / تسجيل</button>
+                <p style="text-align:center; font-size:0.8rem; margin-top:10px;">* سيتم إنشاء حساب جديد تلقائياً إذا لم يكن لديك حساب.</p>
             </div>
             <div id="user-ui" style="display:none; text-align:center;" class="form-box">
                 <h3 id="user-display"></h3>
@@ -172,7 +172,6 @@
     </div>
 
     <script>
-        // إعدادات Firebase الخاصة بمشروعك
         const firebaseConfig = {
             apiKey: "AIzaSyColf3veIyeM_MET_K8em7Sme9u53hP8Ac",
             authDomain: "store-new-edf09.firebaseapp.com",
@@ -192,13 +191,13 @@
         let currentCat = "الكل";
         let currentUser = null;
 
-        // متابعة حالة تسجيل الدخول
+        // إدارة حالة المستخدم وتحديث الواجهة
         auth.onAuthStateChanged(user => {
             currentUser = user;
             if(user) {
                 document.getElementById('login-ui').style.display = 'none';
                 document.getElementById('user-ui').style.display = 'block';
-                document.getElementById('user-display').innerText = "مرحباً بائع: " + user.email;
+                document.getElementById('user-display').innerText = "مرحباً: " + user.email;
                 document.getElementById('add-form-container').style.display = 'block';
                 document.getElementById('login-msg').style.display = 'none';
             } else {
@@ -210,13 +209,24 @@
             render();
         });
 
+        // وظيفة تسجيل الدخول والإنشاء التلقائي
         function handleAuth() {
             const e = document.getElementById('email').value;
             const p = document.getElementById('pass').value;
-            if(!e || !p) return alert("يرجى إدخال البيانات");
+            if(!e || !p) return alert("يرجى ملء كافة الخانات");
+            if(p.length < 6) return alert("كلمة المرور يجب أن لا تقل عن 6 خانات");
+
             auth.signInWithEmailAndPassword(e, p)
-                .catch(() => auth.createUserWithEmailAndPassword(e, p))
-                .catch(err => alert("خطأ: " + err.message));
+                .then(() => alert("تم تسجيل الدخول بنجاح!"))
+                .catch((err) => {
+                    if (err.code === 'auth/user-not-found') {
+                        auth.createUserWithEmailAndPassword(e, p)
+                            .then(() => alert("تم إنشاء حساب جديد لك!"))
+                            .catch(e => alert("خطأ: " + e.message));
+                    } else {
+                        alert("خطأ: " + err.message);
+                    }
+                });
         }
 
         function switchTab(tab, el) {
@@ -238,12 +248,8 @@
 
         document.getElementById('pForm').onsubmit = (e) => {
             e.preventDefault();
-            if(!currentUser) return;
+            if(!currentUser) return alert("سجل دخولك أولاً!");
             const id = document.getElementById('editId').value || Date.now();
-            const btn = document.getElementById('submitBtn');
-            btn.innerText = "جاري الحفظ...";
-            btn.disabled = true;
-
             db.ref('products/' + id).update({
                 id: parseInt(id),
                 uid: currentUser.uid,
@@ -254,9 +260,7 @@
                 tel: document.getElementById('pTel').value,
                 img: currentImg || ""
             }).then(() => {
-                alert("تم بنجاح!");
-                btn.innerText = "نشر المنتج";
-                btn.disabled = false;
+                alert("تم النشر بنجاح!");
                 e.target.reset();
                 document.getElementById('preview').style.display = 'none';
                 document.getElementById('editId').value = "";
@@ -291,12 +295,12 @@
                         <img src="${item.img || 'https://via.placeholder.com/200'}">
                         ${isOwner ? `
                         <div style="position:absolute; top:10px; left:10px; display:flex; gap:5px;">
-                            <button onclick="editP(${item.id})" style="background:white; border:none; width:30px; height:30px; border-radius:50%; cursor:pointer; box-shadow:var(--shadow);">✎</button>
-                            <button onclick="deleteP(${item.id})" style="background:#ff4757; color:white; border:none; width:30px; height:30px; border-radius:50%; cursor:pointer; box-shadow:var(--shadow);">×</button>
+                            <button onclick="editP(${item.id})" style="background:white; border:none; width:30px; height:30px; border-radius:50%; cursor:pointer;">✎</button>
+                            <button onclick="deleteP(${item.id})" style="background:#ff4757; color:white; border:none; width:30px; height:30px; border-radius:50%; cursor:pointer;">×</button>
                         </div>
                         ` : ''}
                         <div class="card-body">
-                            <h3>${item.name}</h3>
+                            <h3 style="margin:0;">${item.name}</h3>
                             <div class="stars-display">${'★'.repeat(Math.round(avg))}${ '☆'.repeat(5-Math.round(avg)) } (${avg})</div>
                             <div class="price-tag">${parseFloat(item.price).toFixed(3)} ر.ع</div>
                             <div class="qty-info">${item.qty <= 0 ? 'نفد ❌' : `متوفر: ${item.qty}`}</div>
@@ -314,8 +318,8 @@
             });
         }
 
-        function deleteP(id) { if(confirm("حذف المنتج؟")) db.ref('products/' + id).remove(); }
-        
+        function deleteP(id) { if(confirm("هل تريد حذف هذا المنتج؟")) db.ref('products/' + id).remove(); }
+
         function editP(id) {
             const p = products.find(i => i.id === id);
             document.getElementById('editId').value = p.id;
