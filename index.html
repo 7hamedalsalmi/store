@@ -148,11 +148,12 @@
                     <input type="file" id="pFile" accept="image/*" style="display:none">
                     <button type="button" onclick="document.getElementById('pFile').click()" class="input-f" style="cursor:pointer; border:2px dashed var(--brand);">📸 اختر صورة</button>
                     <img id="preview" style="width:100%; border-radius:15px; display:none; margin-bottom:15px;">
-                    <button type="submit" class="btn-submit">نشر المنتج</button>
+                    <button type="submit" class="btn-submit" id="submitBtn">نشر المنتج</button>
                 </form>
             </div>
             <div id="login-msg" style="display:none; text-align:center; padding:50px;">
                 <h3>يرجى تسجيل الدخول أولاً لإضافة منتجاتك 🔐</h3>
+                <button onclick="switchTab('auth', document.querySelectorAll('.nav-item')[2])" style="background:var(--brand); color:white; border:none; padding:10px 20px; border-radius:10px; cursor:pointer;">انتقل لصفحة الدخول</button>
             </div>
         </section>
 
@@ -171,6 +172,7 @@
     </div>
 
     <script>
+        // إعدادات Firebase الخاصة بمشروعك
         const firebaseConfig = {
             apiKey: "AIzaSyColf3veIyeM_MET_K8em7Sme9u53hP8Ac",
             authDomain: "store-new-edf09.firebaseapp.com",
@@ -190,12 +192,13 @@
         let currentCat = "الكل";
         let currentUser = null;
 
+        // متابعة حالة تسجيل الدخول
         auth.onAuthStateChanged(user => {
             currentUser = user;
             if(user) {
                 document.getElementById('login-ui').style.display = 'none';
                 document.getElementById('user-ui').style.display = 'block';
-                document.getElementById('user-display').innerText = "البائع: " + user.email;
+                document.getElementById('user-display').innerText = "مرحباً بائع: " + user.email;
                 document.getElementById('add-form-container').style.display = 'block';
                 document.getElementById('login-msg').style.display = 'none';
             } else {
@@ -210,8 +213,10 @@
         function handleAuth() {
             const e = document.getElementById('email').value;
             const p = document.getElementById('pass').value;
-            if(!e || !p) return alert("يرجى ملء البيانات");
-            auth.signInWithEmailAndPassword(e, p).catch(() => auth.createUserWithEmailAndPassword(e, p));
+            if(!e || !p) return alert("يرجى إدخال البيانات");
+            auth.signInWithEmailAndPassword(e, p)
+                .catch(() => auth.createUserWithEmailAndPassword(e, p))
+                .catch(err => alert("خطأ: " + err.message));
         }
 
         function switchTab(tab, el) {
@@ -233,8 +238,12 @@
 
         document.getElementById('pForm').onsubmit = (e) => {
             e.preventDefault();
-            if(!currentUser) return alert("سجل دخولك أولاً!");
+            if(!currentUser) return;
             const id = document.getElementById('editId').value || Date.now();
+            const btn = document.getElementById('submitBtn');
+            btn.innerText = "جاري الحفظ...";
+            btn.disabled = true;
+
             db.ref('products/' + id).update({
                 id: parseInt(id),
                 uid: currentUser.uid,
@@ -243,11 +252,14 @@
                 qty: document.getElementById('pQty').value,
                 cat: document.getElementById('pCat').value,
                 tel: document.getElementById('pTel').value,
-                img: currentImg
+                img: currentImg || ""
             }).then(() => {
                 alert("تم بنجاح!");
+                btn.innerText = "نشر المنتج";
+                btn.disabled = false;
                 e.target.reset();
                 document.getElementById('preview').style.display = 'none';
+                document.getElementById('editId').value = "";
                 switchTab('home', document.querySelectorAll('.nav-item')[0]);
             });
         };
@@ -276,11 +288,11 @@
                     const isOwner = currentUser && item.uid === currentUser.uid;
                     return `
                     <div class="card">
-                        <img src="${item.img || ''}">
+                        <img src="${item.img || 'https://via.placeholder.com/200'}">
                         ${isOwner ? `
                         <div style="position:absolute; top:10px; left:10px; display:flex; gap:5px;">
-                            <button onclick="editP(${item.id})" style="background:white; border:none; width:30px; height:30px; border-radius:50%; cursor:pointer;">✎</button>
-                            <button onclick="deleteP(${item.id})" style="background:#ff4757; color:white; border:none; width:30px; height:30px; border-radius:50%; cursor:pointer;">×</button>
+                            <button onclick="editP(${item.id})" style="background:white; border:none; width:30px; height:30px; border-radius:50%; cursor:pointer; box-shadow:var(--shadow);">✎</button>
+                            <button onclick="deleteP(${item.id})" style="background:#ff4757; color:white; border:none; width:30px; height:30px; border-radius:50%; cursor:pointer; box-shadow:var(--shadow);">×</button>
                         </div>
                         ` : ''}
                         <div class="card-body">
@@ -302,7 +314,8 @@
             });
         }
 
-        function deleteP(id) { if(confirm("حذف؟")) db.ref('products/' + id).remove(); }
+        function deleteP(id) { if(confirm("حذف المنتج؟")) db.ref('products/' + id).remove(); }
+        
         function editP(id) {
             const p = products.find(i => i.id === id);
             document.getElementById('editId').value = p.id;
@@ -312,8 +325,11 @@
             document.getElementById('pCat').value = p.cat;
             document.getElementById('pTel').value = p.tel;
             currentImg = p.img;
+            document.getElementById('preview').src = p.img;
+            document.getElementById('preview').style.display = 'block';
             switchTab('add', document.querySelectorAll('.nav-item')[1]);
         }
+
         function filterCat(c, el) { currentCat = c; document.querySelectorAll('.cat-chip').forEach(i => i.classList.remove('active')); el.classList.add('active'); render(); }
         function toggleTheme() { document.body.setAttribute('data-theme', document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); }
 
