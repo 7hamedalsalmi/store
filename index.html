@@ -153,7 +153,6 @@
             </div>
             <div id="login-msg" style="display:none; text-align:center; padding:50px;">
                 <h3>يرجى تسجيل الدخول أولاً لإضافة منتجاتك 🔐</h3>
-                <button onclick="switchTab('auth', document.querySelectorAll('.nav-item')[2])" style="background:var(--brand); color:white; border:none; padding:10px 20px; border-radius:10px; cursor:pointer;">انتقل لصفحة الدخول</button>
             </div>
         </section>
 
@@ -172,7 +171,6 @@
     </div>
 
     <script>
-        // إعدادات Firebase الخاصة بمشروعك
         const firebaseConfig = {
             apiKey: "AIzaSyColf3veIyeM_MET_K8em7Sme9u53hP8Ac",
             authDomain: "store-new-edf09.firebaseapp.com",
@@ -192,13 +190,12 @@
         let currentCat = "الكل";
         let currentUser = null;
 
-        // متابعة حالة المستخدم
         auth.onAuthStateChanged(user => {
             currentUser = user;
             if(user) {
                 document.getElementById('login-ui').style.display = 'none';
                 document.getElementById('user-ui').style.display = 'block';
-                document.getElementById('user-display').innerText = "مرحباً: " + user.email;
+                document.getElementById('user-display').innerText = "البائع: " + user.email;
                 document.getElementById('add-form-container').style.display = 'block';
                 document.getElementById('login-msg').style.display = 'none';
             } else {
@@ -213,10 +210,8 @@
         function handleAuth() {
             const e = document.getElementById('email').value;
             const p = document.getElementById('pass').value;
-            if(!e || !p) return alert("يرجى إدخال البيانات");
-            auth.signInWithEmailAndPassword(e, p)
-                .catch(() => auth.createUserWithEmailAndPassword(e, p))
-                .catch(err => alert("خطأ: " + err.message));
+            if(!e || !p) return alert("يرجى ملء البيانات");
+            auth.signInWithEmailAndPassword(e, p).catch(() => auth.createUserWithEmailAndPassword(e, p));
         }
 
         function switchTab(tab, el) {
@@ -224,7 +219,6 @@
             document.getElementById('tab-'+tab).classList.add('active');
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             el.classList.add('active');
-            window.scrollTo(0,0);
         }
 
         document.getElementById('pFile').onchange = (e) => {
@@ -240,7 +234,6 @@
         document.getElementById('pForm').onsubmit = (e) => {
             e.preventDefault();
             if(!currentUser) return alert("سجل دخولك أولاً!");
-
             const id = document.getElementById('editId').value || Date.now();
             db.ref('products/' + id).update({
                 id: parseInt(id),
@@ -252,7 +245,7 @@
                 tel: document.getElementById('pTel').value,
                 img: currentImg
             }).then(() => {
-                alert("تم الحفظ بنجاح!");
+                alert("تم بنجاح!");
                 e.target.reset();
                 document.getElementById('preview').style.display = 'none';
                 switchTab('home', document.querySelectorAll('.nav-item')[0]);
@@ -309,7 +302,7 @@
             });
         }
 
-        function deleteP(id) { if(confirm("حذف المنتج؟")) db.ref('products/' + id).remove(); }
+        function deleteP(id) { if(confirm("حذف؟")) db.ref('products/' + id).remove(); }
         function editP(id) {
             const p = products.find(i => i.id === id);
             document.getElementById('editId').value = p.id;
