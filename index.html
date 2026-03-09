@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>متجر أسر عُمان 🇴🇲</title>
+    <title>متجر أسر عُمان 🇴🇲 - نظام البائعين</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
     <style>
         :root {
@@ -94,8 +95,8 @@
         .section { display: none; padding: 20px 0; }
         .section.active { display: block; }
 
-        .form-box { background: var(--card-bg); padding: 25px; border-radius: 25px; box-shadow: var(--shadow); }
-        .input-f { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #ddd; font-family: 'Cairo'; box-sizing: border-box; }
+        .form-box { background: var(--card-bg); padding: 25px; border-radius: 25px; box-shadow: var(--shadow); margin-top: 10px;}
+        .input-f { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #ddd; font-family: 'Cairo'; box-sizing: border-box; background: var(--card-bg); color: var(--text); }
 
         @media (max-width: 768px) {
             .grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
@@ -113,7 +114,7 @@
     <nav class="bottom-nav">
         <div class="nav-item active" onclick="switchTab('home', this)"><span>🏠</span><span>الرئيسية</span></div>
         <div class="nav-item" onclick="switchTab('add', this)"><span>➕</span><span>إضافة</span></div>
-        <div class="nav-item" onclick="switchTab('info', this)"><span>ℹ️</span><span>عن المتجر</span></div>
+        <div class="nav-item" onclick="switchTab('auth', this)"><span>👤</span><span>حسابي</span></div>
     </nav>
 
     <div class="container">
@@ -131,8 +132,12 @@
         </section>
 
         <section id="tab-add" class="section">
-            <div class="form-box">
-                <h2 style="text-align:center;">إضافة منتج للجميع</h2>
+            <div id="add-restriction-msg" style="text-align: center; padding: 50px 10px; display: none;">
+                <h3>يرجى تسجيل الدخول لتتمكن من إضافة منتج 🔐</h3>
+                <button onclick="switchTab('auth', document.querySelectorAll('.nav-item')[2])" style="padding: 10px 20px; background: var(--brand); color: white; border: none; border-radius: 10px;">انتقل لصفحة الدخول</button>
+            </div>
+            <div class="form-box" id="add-form-container">
+                <h2 style="text-align:center;">إضافة منتج جديد</h2>
                 <form id="pForm">
                     <input type="hidden" id="editId">
                     <input type="text" class="input-f" id="pName" placeholder="اسم المنتج" required>
@@ -145,24 +150,31 @@
                     </select>
                     <input type="text" class="input-f" id="pTel" placeholder="رقم الهاتف (968)" required>
                     <input type="file" id="pFile" accept="image/*" style="display:none">
-                    <button type="button" onclick="document.getElementById('pFile').click()" style="width:100%; padding:12px; border:2px dashed var(--brand); border-radius:12px; background:none; color:var(--brand); font-weight:bold; margin-bottom:15px;">📸 اختر صورة</button>
+                    <button type="button" onclick="document.getElementById('pFile').click()" style="width:100%; padding:12px; border:2px dashed var(--brand); border-radius:12px; background:none; color:var(--brand); font-weight:bold; margin-bottom:15px;">📸 اختر صورة المنتج</button>
                     <img id="preview" style="width:100%; border-radius:15px; display:none; margin-bottom:15px;">
-                    <button type="submit" id="submitBtn" style="width:100%; padding:15px; background:var(--brand); color:white; border:none; border-radius:12px; font-weight:bold; cursor:pointer;">نشر للجميع</button>
+                    <button type="submit" id="submitBtn" style="width:100%; padding:15px; background:var(--brand); color:white; border:none; border-radius:12px; font-weight:bold; cursor:pointer;">نشر المنتج</button>
                 </form>
             </div>
         </section>
 
-        <section id="tab-info" class="section">
-            <div class="form-box" style="text-align:center;">
-                <h2 style="color: var(--brand); font-weight: 900;">OM متجر أسر عُمان</h2>
-                <p style="font-size: 1.1rem; font-weight: 600;">منصة متكاملة لدعم المشاريع المنزلية والأسر المنتجة في سلطنة عُمان.</p>
-                <p style="margin-top: 20px; opacity: 0.7;">جميع الحقوق محفوظة للمتجر</p>
+        <section id="tab-auth" class="section">
+            <div class="form-box" id="auth-box">
+                <h2 id="auth-title" style="text-align:center;">دخول البائعين</h2>
+                <input type="email" id="auth-email" class="input-f" placeholder="البريد الإلكتروني">
+                <input type="password" id="auth-pass" class="input-f" placeholder="كلمة المرور">
+                <button onclick="handleAuth()" id="auth-btn" style="width:100%; padding:15px; background:var(--brand); color:white; border:none; border-radius:12px; font-weight:bold; cursor:pointer;">دخول / إنشاء حساب</button>
+                <p style="font-size: 0.8rem; text-align: center; margin-top: 10px; color: gray;">* إذا لم يكن لديك حساب، سيتم إنشاء واحد تلقائياً.</p>
+            </div>
+            <div class="form-box" id="user-info-box" style="display:none; text-align:center;">
+                <div style="font-size: 3rem;">👤</div>
+                <h3 id="user-email-display">...</h3>
+                <p>أهلاً بك في لوحة تحكم التاجر</p>
+                <button onclick="firebase.auth().signOut()" style="width:100%; padding:12px; background:#ff4757; color:white; border:none; border-radius:12px; font-weight:bold; cursor:pointer;">تسجيل الخروج</button>
             </div>
         </section>
     </div>
 
     <script>
-        // دمج بيانات Firebase الحقيقية من صورتك
         const firebaseConfig = {
             apiKey: "AIzaSyColf3veIyeM_MET_K8em7Sme9u53hP8Ac",
             authDomain: "store-new-edf09.firebaseapp.com",
@@ -175,10 +187,44 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        const auth = firebase.auth();
 
         let products = [];
         let currentImg = "";
         let currentCat = "الكل";
+        let currentUser = null;
+
+        // مراقبة حالة تسجيل الدخول
+        auth.onAuthStateChanged((user) => {
+            currentUser = user;
+            if (user) {
+                document.getElementById('auth-box').style.display = 'none';
+                document.getElementById('user-info-box').style.display = 'block';
+                document.getElementById('user-email-display').innerText = user.email;
+                document.getElementById('add-form-container').style.display = 'block';
+                document.getElementById('add-restriction-msg').style.display = 'none';
+            } else {
+                document.getElementById('auth-box').style.display = 'block';
+                document.getElementById('user-info-box').style.display = 'none';
+                document.getElementById('add-form-container').style.display = 'none';
+                document.getElementById('add-restriction-msg').style.display = 'block';
+            }
+            render(); // تحديث الأزرار (✎, ×) بناءً على المستخدم
+        });
+
+        function handleAuth() {
+            const email = document.getElementById('auth-email').value;
+            const pass = document.getElementById('auth-pass').value;
+            if(!email || !pass) { alert("أدخل البيانات"); return; }
+
+            auth.signInWithEmailAndPassword(email, pass).catch(err => {
+                if (err.code === 'auth/user-not-found') {
+                    return auth.createUserWithEmailAndPassword(email, pass);
+                } else {
+                    alert("خطأ: " + err.message);
+                }
+            });
+        }
 
         function switchTab(tab, el) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -200,13 +246,17 @@
 
         document.getElementById('pForm').onsubmit = function(e) {
             e.preventDefault();
+            if(!currentUser) { alert("يجب تسجيل الدخول!"); return; }
+
             const editId = document.getElementById('editId').value || Date.now();
             const btn = document.getElementById('submitBtn');
-            btn.innerText = "جاري النشر...";
+            btn.innerText = "جاري الحفظ...";
             btn.disabled = true;
 
             const productData = {
                 id: parseInt(editId),
+                userId: currentUser.uid, // ربط المنتج بصاحبه
+                owner: currentUser.email.split('@')[0],
                 name: document.getElementById('pName').value,
                 price: document.getElementById('pPrice').value,
                 qty: document.getElementById('pQty').value,
@@ -217,26 +267,15 @@
             };
 
             db.ref('products/' + editId).update(productData).then(() => {
-                alert("تم النشر بنجاح!");
-                btn.innerText = "نشر للجميع";
+                alert("تم الحفظ بنجاح!");
+                btn.innerText = "نشر المنتج";
                 btn.disabled = false;
                 this.reset();
+                document.getElementById('editId').value = "";
                 document.getElementById('preview').style.display = 'none';
                 switchTab('home', document.querySelectorAll('.nav-item')[0]);
             });
         };
-
-        function addRating(pId, score) {
-            const p = products.find(i => i.id === pId);
-            if(!p.ratings) p.ratings = [];
-            p.ratings.push(score);
-            db.ref('products/' + pId + '/ratings').set(p.ratings);
-        }
-
-        function getAvg(ratings) {
-            if(!ratings || ratings.length === 0) return 0;
-            return (ratings.reduce((a,b)=>a+b,0) / ratings.length).toFixed(1);
-        }
 
         function listenToData() {
             db.ref('products').on('value', (snapshot) => {
@@ -253,15 +292,23 @@
             
             grid.innerHTML = filtered.map(item => {
                 const avg = getAvg(item.ratings);
+                // التحقق: هل المستخدم الحالي هو صاحب المنتج؟
+                const isOwner = currentUser && item.userId === currentUser.uid;
+
                 return `
                 <div class="card">
                     <img src="${item.img || 'https://via.placeholder.com/200'}">
-                    <div style="position:absolute; top:10px; left:10px; display:flex; gap:5px;">
-                        <button onclick="editP(${item.id})" style="background:white; border:none; width:30px; height:30px; border-radius:50%; cursor:pointer;">✎</button>
-                        <button onclick="deleteP(${item.id})" style="background:#ff4757; color:white; border:none; width:30px; height:30px; border-radius:50%; cursor:pointer;">×</button>
+                    
+                    ${isOwner ? `
+                    <div style="position:absolute; top:10px; left:10px; display:flex; gap:5px; z-index:10;">
+                        <button onclick="editP(${item.id})" style="background:white; border:none; width:35px; height:35px; border-radius:50%; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2);">✎</button>
+                        <button onclick="deleteP(${item.id})" style="background:#ff4757; color:white; border:none; width:35px; height:35px; border-radius:50%; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2);">×</button>
                     </div>
+                    ` : ''}
+
                     <div class="card-body">
-                        <h3 style="margin:0;">${item.name}</h3>
+                        <div style="font-size:0.7rem; color:var(--brand); font-weight:bold;">بواسطة: ${item.owner || 'تاجر'}</div>
+                        <h3 style="margin:5px 0;">${item.name}</h3>
                         <div class="stars-display">
                             ${'★'.repeat(Math.round(avg))}${'☆'.repeat(5 - Math.round(avg))} (${avg})
                         </div>
@@ -285,6 +332,8 @@
 
         function editP(id) {
             const p = products.find(i => i.id === id);
+            if(currentUser.uid !== p.userId) return alert("لا تملك صلاحية تعديل هذا المنتج");
+            
             document.getElementById('editId').value = p.id;
             document.getElementById('pName').value = p.name;
             document.getElementById('pPrice').value = p.price;
@@ -292,11 +341,31 @@
             document.getElementById('pCat').value = p.cat;
             document.getElementById('pTel').value = p.tel;
             currentImg = p.img;
+            document.getElementById('preview').src = p.img;
+            document.getElementById('preview').style.display = 'block';
             switchTab('add', document.querySelectorAll('.nav-item')[1]);
         }
 
-        function deleteP(id) { if(confirm("حذف؟")) db.ref('products/' + id).remove(); }
+        function deleteP(id) { 
+            const p = products.find(i => i.id === id);
+            if(currentUser.uid !== p.userId) return alert("لا تملك صلاحية الحذف");
+            if(confirm("هل أنت متأكد من حذف المنتج؟")) db.ref('products/' + id).remove(); 
+        }
+
+        function addRating(pId, score) {
+            const p = products.find(i => i.id === pId);
+            if(!p.ratings) p.ratings = [];
+            p.ratings.push(score);
+            db.ref('products/' + pId + '/ratings').set(p.ratings);
+        }
+
+        function getAvg(ratings) {
+            if(!ratings || ratings.length === 0) return 0;
+            return (ratings.reduce((a,b)=>a+b,0) / ratings.length).toFixed(1);
+        }
+
         function filterCat(c, el) { currentCat = c; document.querySelectorAll('.cat-chip').forEach(i => i.classList.remove('active')); el.classList.add('active'); render(); }
+        
         function toggleTheme() {
             const t = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
             document.body.setAttribute('data-theme', t);
