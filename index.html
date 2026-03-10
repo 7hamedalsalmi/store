@@ -35,12 +35,36 @@
 
         .header {
             background: var(--nav-bg); backdrop-filter: blur(10px);
-            padding: 15px 5%; position: sticky; top: 0; z-index: 1000;
+            padding: 10px 5%; position: sticky; top: 0; z-index: 1000;
             display: flex; justify-content: space-between; align-items: center;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
 
-        .logo { font-size: 1.5rem; font-weight: 900; }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .clean-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'Cairo';
+            font-weight: bold;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: 0.2s;
+        }
+
+        .clean-btn:active { transform: scale(0.95); }
+
+        .logo { font-size: 1.3rem; font-weight: 900; }
         .logo span { color: var(--brand); }
 
         .search-area { padding: 20px 5% 0; }
@@ -76,9 +100,6 @@
         .product-desc { font-size: 0.85rem; color: #64748b; margin-bottom: 10px; line-height: 1.4; height: 40px; overflow: hidden; }
 
         .stars-display { color: var(--star); font-size: 0.9rem; margin-bottom: 5px; }
-        .rating-input { display: flex; flex-direction: row-reverse; justify-content: center; gap: 5px; margin-bottom: 10px; }
-        .rating-input span { cursor: pointer; font-size: 1.5rem; color: #cbd5e1; }
-        .rating-input span:hover, .rating-input span:hover ~ span { color: var(--star); }
 
         .btn-group { display: flex; gap: 5px; margin-top: 15px; }
         .btn-action { flex: 1; padding: 10px; border-radius: 10px; text-decoration: none; text-align: center; color: white; font-weight: bold; font-size: 0.8rem; }
@@ -110,7 +131,12 @@
 
     <header class="header">
         <div class="logo">أسر<span>عُمان</span></div>
-        <button onclick="toggleTheme()" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">🌓</button>
+        <div class="header-actions">
+            <button onclick="clearSoldOut()" class="clean-btn">
+                <span>🧹</span> تنظيف
+            </button>
+            <button onclick="toggleTheme()" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">🌓</button>
+        </div>
     </header>
 
     <nav class="bottom-nav">
@@ -160,13 +186,11 @@
             <div class="form-box" style="text-align:center;">
                 <h2 style="color: var(--brand); font-weight: 900;">متجر أسر عُمان</h2>
                 <p>هذا المتجر يدعم الأسر المنتجة. النسخة الحالية تدعم ضغط الصور آلياً للحفاظ على مساحة التخزين.</p>
-                <button onclick="clearSoldOut()" style="background:#ef4444; color:white; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:bold;">تنظيف المنتجات المنتهية 🧹</button>
             </div>
         </section>
     </div>
 
     <script>
-        // تكوين Firebase (استخدم بياناتك الحالية)
         const firebaseConfig = {
             apiKey: "AIzaSyColf3veIyeM_MET_K8em7Sme9u53hP8Ac",
             authDomain: "store-new-edf09.firebaseapp.com",
@@ -184,7 +208,6 @@
         let currentImg = "";
         let currentCat = "الكل";
 
-        // --- وظائف الواجهة ---
         function switchTab(tab, el) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.getElementById('tab-'+tab).classList.add('active');
@@ -193,26 +216,21 @@
             window.scrollTo(0,0);
         }
 
-        // --- ضغط الصور لزيادة المساحة ---
         document.getElementById('pFile').onchange = function(e) {
             const file = e.target.files[0];
             if(!file) return;
-
             const reader = new FileReader();
             reader.onload = function(event) {
                 const img = new Image();
                 img.src = event.target.result;
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 500; // حجم مثالي للموبايل وتوفير المساحة
+                    const MAX_WIDTH = 500; 
                     const scale = MAX_WIDTH / img.width;
                     canvas.width = MAX_WIDTH;
                     canvas.height = img.height * scale;
-
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-                    // تحويل الصورة لصيغة مضغوطة جداً
                     currentImg = canvas.toDataURL('image/jpeg', 0.5); 
                     document.getElementById('preview').src = currentImg;
                     document.getElementById('preview').style.display = 'block';
@@ -221,14 +239,11 @@
             reader.readAsDataURL(file);
         };
 
-        // --- حفظ البيانات ---
         document.getElementById('pForm').onsubmit = function(e) {
             e.preventDefault();
             const editId = document.getElementById('editId').value || Date.now();
             const btn = document.getElementById('submitBtn');
-            
             if(!currentImg) { alert("رجاءً اختر صورة للمنتج"); return; }
-
             btn.innerText = "جاري الحفظ...";
             btn.disabled = true;
 
@@ -256,7 +271,6 @@
             });
         };
 
-        // --- العرض والفلترة ---
         function listenToData() {
             db.ref('products').on('value', (snapshot) => {
                 const data = snapshot.val();
@@ -294,7 +308,6 @@
             `}).join('');
         }
 
-        // --- ميزات إضافية ---
         function getAvg(r) { return (r && r.length) ? (r.reduce((a,b)=>a+b,0)/r.length).toFixed(1) : 0; }
         
         function deleteP(id) { if(confirm("هل أنت متأكد من الحذف؟")) db.ref('products/' + id).remove(); }
@@ -317,6 +330,7 @@
         function clearSoldOut() {
             if(confirm("سيتم حذف المنتجات التي كميتها 0 لتوفير مساحة. استمرار؟")) {
                 products.forEach(p => { if(p.qty <= 0) db.ref('products/'+p.id).remove(); });
+                alert("تم تنظيف قاعدة البيانات بنجاح!");
             }
         }
 
