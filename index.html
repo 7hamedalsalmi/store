@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>متجر أسر عُمان 🇴🇲 - من بيوتنا إلى قلوبكم</title>
+    <title>عماني هوم ماركت 🇴🇲 - من بيوتنا إلى قلوبكم</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -11,7 +11,7 @@
 
     <style>
         :root {
-            --brand: #6366f1;
+            --brand: #e11d48; 
             --bg: #f8fafc;
             --card-bg: #ffffff;
             --text: #0f172a;
@@ -35,27 +35,29 @@
 
         .header {
             background: var(--nav-bg); backdrop-filter: blur(10px);
-            padding: 10px 5%; position: sticky; top: 0; z-index: 1000;
+            padding: 20px 5%; /* زيادة الحشوة لتناسب الحجم الجديد */
+            position: sticky; top: 0; z-index: 1000;
             display: flex; justify-content: space-between; align-items: center;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            min-height: 100px; /* ضمان وجود مساحة كافية للهيدر */
         }
 
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 15px;
         }
 
         .clean-btn {
             background: #ef4444;
             color: white;
             border: none;
-            padding: 6px 12px;
-            border-radius: 10px;
+            padding: 8px 16px;
+            border-radius: 12px;
             cursor: pointer;
             font-family: 'Cairo';
             font-weight: bold;
-            font-size: 0.8rem;
+            font-size: 0.9rem;
             display: flex;
             align-items: center;
             gap: 5px;
@@ -64,8 +66,18 @@
 
         .clean-btn:active { transform: scale(0.95); }
 
-        .logo { font-size: 1.3rem; font-weight: 900; }
-        .logo span { color: var(--brand); }
+        /* تعديل الشعار ليكون بحجم أكبر جداً */
+        .logo { 
+            display: flex;
+            align-items: center;
+        }
+        .logo img { 
+            height: 120px; /* تم التكبير إلى 120 بكسل */
+            width: auto; 
+            max-width: 300px; 
+            object-fit: contain; 
+            transition: 0.3s ease;
+        }
 
         .search-area { padding: 20px 5% 0; }
         .search-input {
@@ -124,13 +136,17 @@
         @media (max-width: 768px) {
             .grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
             .card img { height: 150px; }
+            .logo img { height: 80px; } /* حجم متوازن للهواتف */
+            .header { padding: 10px 5%; }
         }
     </style>
 </head>
 <body>
 
     <header class="header">
-        <div class="logo">أسر<span>عُمان</span></div>
+        <div class="logo">
+            <img src="store.jpeg" alt="عماني هوم ماركت">
+        </div>
         <div class="header-actions">
             <button onclick="clearSoldOut()" class="clean-btn">
                 <span>🧹</span> تنظيف
@@ -165,7 +181,7 @@
                 <form id="pForm">
                     <input type="hidden" id="editId">
                     <input type="text" class="input-f" id="pName" placeholder="اسم المنتج" required>
-                    <textarea class="input-f" id="pDesc" placeholder="وصف المنتج (اختصره لتوفير المساحة)"></textarea>
+                    <textarea class="input-f" id="pDesc" placeholder="وصف المنتج"></textarea>
                     <input type="number" step="0.001" class="input-f" id="pPrice" placeholder="السعر (ر.ع)" required>
                     <input type="number" class="input-f" id="pQty" placeholder="الكمية المتوفرة" required>
                     <select class="input-f" id="pCat">
@@ -175,7 +191,7 @@
                     </select>
                     <input type="text" class="input-f" id="pTel" placeholder="رقم الهاتف (مثال: 96812345678)" required>
                     <input type="file" id="pFile" accept="image/*" style="display:none">
-                    <button type="button" onclick="document.getElementById('pFile').click()" style="width:100%; padding:12px; border:2px dashed var(--brand); border-radius:12px; background:none; color:var(--brand); font-weight:bold; margin-bottom:15px; cursor:pointer;">📸 اختر صورة (سيتم ضغطها تلقائياً)</button>
+                    <button type="button" onclick="document.getElementById('pFile').click()" style="width:100%; padding:12px; border:2px dashed var(--brand); border-radius:12px; background:none; color:var(--brand); font-weight:bold; margin-bottom:15px; cursor:pointer;">📸 اختر صورة</button>
                     <center><img id="preview" style="width:120px; height:120px; object-fit:cover; border-radius:15px; display:none; margin-bottom:15px; border: 2px solid var(--brand);"></center>
                     <button type="submit" id="submitBtn" style="width:100%; padding:15px; background:var(--brand); color:white; border:none; border-radius:12px; font-weight:bold; cursor:pointer;">نشر المنتج</button>
                 </form>
@@ -186,11 +202,10 @@
             <div class="form-box" style="text-align:center;">
                 <h2 style="color: var(--brand); font-weight: 900; margin-bottom: 15px;">من بيوتنا.. إلى قلوبكم</h2>
                 <p style="line-height: 1.8; font-size: 1.05rem;">
-                    متجرنا منصة تجمع أجود منتجات الأسر المنتجة في مكان واحد. 
-                    هدفنا تمكين الأيدي العاملة المحلية وتقديم منتجات منزلية صنعت بكل حب وإتقان لتصل إليكم بأفضل صورة.
+                    متجر عماني هوم ماركت منصة تجمع أجود منتجات الأسر المنتجة في مكان واحد.
                 </p>
                 <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-                <p style="font-size: 0.8rem; color: #94a3b8;">متجر أسر عُمان 🇴🇲 - الإصدار المحسن</p>
+                <p style="font-size: 0.8rem; color: #94a3b8;">عماني هوم ماركت 🇴🇲</p>
             </div>
         </section>
     </div>
