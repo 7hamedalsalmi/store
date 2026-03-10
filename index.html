@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>متجر أسر عُمان 🇴🇲</title>
+    <title>متجر أسر عُمان 🇴🇲 - النسخة المحسنة</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -47,12 +47,12 @@
         .search-input {
             width: 100%; padding: 15px; border-radius: 15px; border: none;
             background: var(--card-bg); box-shadow: var(--shadow);
-            font-family: 'Cairo'; color: var(--text);
+            font-family: 'Cairo'; color: var(--text); outline: none;
         }
 
         .cat-bar { 
             display: flex; gap: 10px; overflow-x: auto; padding: 15px 5%; 
-            scrollbar-width: none; justify-content: center; 
+            scrollbar-width: none;
         }
         .cat-bar::-webkit-scrollbar { display: none; }
         .cat-chip {
@@ -68,18 +68,17 @@
             background: var(--card-bg); border-radius: 20px; overflow: hidden;
             box-shadow: var(--shadow); position: relative; transition: 0.3s;
         }
-        .card img { width: 100%; height: 200px; object-fit: cover; }
+        .card img { width: 100%; height: 200px; object-fit: cover; background: #eee; }
 
         .card-body { padding: 15px; }
         .price-tag { color: var(--brand); font-weight: 900; font-size: 1.3rem; margin: 5px 0; }
         .qty-info { font-size: 0.8rem; color: #ef4444; font-weight: bold; margin-bottom: 10px; }
-        .product-desc { font-size: 0.85rem; color: #64748b; margin-bottom: 10px; line-height: 1.4; }
+        .product-desc { font-size: 0.85rem; color: #64748b; margin-bottom: 10px; line-height: 1.4; height: 40px; overflow: hidden; }
 
         .stars-display { color: var(--star); font-size: 0.9rem; margin-bottom: 5px; }
         .rating-input { display: flex; flex-direction: row-reverse; justify-content: center; gap: 5px; margin-bottom: 10px; }
-        .rating-input span { cursor: pointer; font-size: 1.5rem; color: #cbd5e1; transition: 0.2s; }
+        .rating-input span { cursor: pointer; font-size: 1.5rem; color: #cbd5e1; }
         .rating-input span:hover, .rating-input span:hover ~ span { color: var(--star); }
-        .rating-input span.selected, .rating-input span.selected ~ span { color: var(--star); }
 
         .btn-group { display: flex; gap: 5px; margin-top: 15px; }
         .btn-action { flex: 1; padding: 10px; border-radius: 10px; text-decoration: none; text-align: center; color: white; font-weight: bold; font-size: 0.8rem; }
@@ -98,14 +97,12 @@
         .section { display: none; padding: 20px 0; }
         .section.active { display: block; }
 
-        .form-box { background: var(--card-bg); padding: 25px; border-radius: 25px; box-shadow: var(--shadow); }
-        .input-f { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #ddd; font-family: 'Cairo'; box-sizing: border-box; }
-        textarea.input-f { min-height: 100px; resize: vertical; }
-
+        .form-box { background: var(--card-bg); padding: 25px; border-radius: 25px; box-shadow: var(--shadow); max-width: 500px; margin: auto; }
+        .input-f { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #ddd; font-family: 'Cairo'; box-sizing: border-box; background: var(--bg); color: var(--text); }
+        
         @media (max-width: 768px) {
             .grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
             .card img { height: 150px; }
-            .cat-bar { justify-content: flex-start; }
         }
     </style>
 </head>
@@ -138,37 +135,38 @@
 
         <section id="tab-add" class="section">
             <div class="form-box">
-                <h2 style="text-align:center;">إضافة منتج للجميع</h2>
+                <h2 style="text-align:center;">إضافة منتج جديد</h2>
                 <form id="pForm">
                     <input type="hidden" id="editId">
                     <input type="text" class="input-f" id="pName" placeholder="اسم المنتج" required>
-                    <textarea class="input-f" id="pDesc" placeholder="وصف المنتج"></textarea>
-                    <input type="number" step="0.001" class="input-f" id="pPrice" placeholder="السعر" required>
-                    <input type="number" class="input-f" id="pQty" placeholder="الكمية" required>
+                    <textarea class="input-f" id="pDesc" placeholder="وصف المنتج (اختصره لتوفير المساحة)"></textarea>
+                    <input type="number" step="0.001" class="input-f" id="pPrice" placeholder="السعر (ر.ع)" required>
+                    <input type="number" class="input-f" id="pQty" placeholder="الكمية المتوفرة" required>
                     <select class="input-f" id="pCat">
                         <option value="مأكولات">مأكولات</option>
                         <option value="أزياء">أزياء</option>
                         <option value="بخور وعطور">بخور وعطور</option>
                     </select>
-                    <input type="text" class="input-f" id="pTel" placeholder="رقم الهاتف (968)" required>
+                    <input type="text" class="input-f" id="pTel" placeholder="رقم الهاتف (مثال: 96812345678)" required>
                     <input type="file" id="pFile" accept="image/*" style="display:none">
-                    <button type="button" onclick="document.getElementById('pFile').click()" style="width:100%; padding:12px; border:2px dashed var(--brand); border-radius:12px; background:none; color:var(--brand); font-weight:bold; margin-bottom:15px;">📸 اختر صورة</button>
-                    <img id="preview" style="width:100%; border-radius:15px; display:none; margin-bottom:15px;">
-                    <button type="submit" id="submitBtn" style="width:100%; padding:15px; background:var(--brand); color:white; border:none; border-radius:12px; font-weight:bold; cursor:pointer;">نشر للجميع</button>
+                    <button type="button" onclick="document.getElementById('pFile').click()" style="width:100%; padding:12px; border:2px dashed var(--brand); border-radius:12px; background:none; color:var(--brand); font-weight:bold; margin-bottom:15px; cursor:pointer;">📸 اختر صورة (سيتم ضغطها تلقائياً)</button>
+                    <center><img id="preview" style="width:120px; height:120px; object-fit:cover; border-radius:15px; display:none; margin-bottom:15px; border: 2px solid var(--brand);"></center>
+                    <button type="submit" id="submitBtn" style="width:100%; padding:15px; background:var(--brand); color:white; border:none; border-radius:12px; font-weight:bold; cursor:pointer;">نشر المنتج</button>
                 </form>
             </div>
         </section>
 
         <section id="tab-info" class="section">
             <div class="form-box" style="text-align:center;">
-                <h2 style="color: var(--brand); font-weight: 900;">OM متجر أسر عُمان</h2>
-                <p style="font-size: 1.1rem; font-weight: 600;">منصة متكاملة لدعم المشاريع المنزلية والأسر المنتجة في سلطنة عُمان.</p>
-                <p style="margin-top: 20px; opacity: 0.7;">جميع الحقوق محفوظة للمتجر</p>
+                <h2 style="color: var(--brand); font-weight: 900;">متجر أسر عُمان</h2>
+                <p>هذا المتجر يدعم الأسر المنتجة. النسخة الحالية تدعم ضغط الصور آلياً للحفاظ على مساحة التخزين.</p>
+                <button onclick="clearSoldOut()" style="background:#ef4444; color:white; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:bold;">تنظيف المنتجات المنتهية 🧹</button>
             </div>
         </section>
     </div>
 
     <script>
+        // تكوين Firebase (استخدم بياناتك الحالية)
         const firebaseConfig = {
             apiKey: "AIzaSyColf3veIyeM_MET_K8em7Sme9u53hP8Ac",
             authDomain: "store-new-edf09.firebaseapp.com",
@@ -186,6 +184,7 @@
         let currentImg = "";
         let currentCat = "الكل";
 
+        // --- وظائف الواجهة ---
         function switchTab(tab, el) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.getElementById('tab-'+tab).classList.add('active');
@@ -194,21 +193,43 @@
             window.scrollTo(0,0);
         }
 
+        // --- ضغط الصور لزيادة المساحة ---
         document.getElementById('pFile').onchange = function(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+
             const reader = new FileReader();
-            reader.onload = function(event) { 
-                currentImg = event.target.result; 
-                document.getElementById('preview').src = currentImg; 
-                document.getElementById('preview').style.display = 'block'; 
+            reader.onload = function(event) {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 500; // حجم مثالي للموبايل وتوفير المساحة
+                    const scale = MAX_WIDTH / img.width;
+                    canvas.width = MAX_WIDTH;
+                    canvas.height = img.height * scale;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                    // تحويل الصورة لصيغة مضغوطة جداً
+                    currentImg = canvas.toDataURL('image/jpeg', 0.5); 
+                    document.getElementById('preview').src = currentImg;
+                    document.getElementById('preview').style.display = 'block';
+                };
             };
-            reader.readAsDataURL(e.target.files[0]);
+            reader.readAsDataURL(file);
         };
 
+        // --- حفظ البيانات ---
         document.getElementById('pForm').onsubmit = function(e) {
             e.preventDefault();
             const editId = document.getElementById('editId').value || Date.now();
             const btn = document.getElementById('submitBtn');
-            btn.innerText = "جاري النشر...";
+            
+            if(!currentImg) { alert("رجاءً اختر صورة للمنتج"); return; }
+
+            btn.innerText = "جاري الحفظ...";
             btn.disabled = true;
 
             const productData = {
@@ -219,32 +240,23 @@
                 qty: document.getElementById('pQty').value,
                 cat: document.getElementById('pCat').value,
                 tel: document.getElementById('pTel').value,
-                img: currentImg || "",
+                img: currentImg,
                 ratings: []
             };
 
-            db.ref('products/' + editId).update(productData).then(() => {
-                alert("تم النشر بنجاح!");
-                btn.innerText = "نشر للجميع";
+            db.ref('products/' + editId).set(productData).then(() => {
+                alert("تم الحفظ بنجاح!");
+                btn.innerText = "نشر المنتج";
                 btn.disabled = false;
                 this.reset();
+                currentImg = "";
                 document.getElementById('preview').style.display = 'none';
+                document.getElementById('editId').value = "";
                 switchTab('home', document.querySelectorAll('.nav-item')[0]);
             });
         };
 
-        function addRating(pId, score) {
-            const p = products.find(i => i.id === pId);
-            if(!p.ratings) p.ratings = [];
-            p.ratings.push(score);
-            db.ref('products/' + pId + '/ratings').set(p.ratings);
-        }
-
-        function getAvg(ratings) {
-            if(!ratings || ratings.length === 0) return 0;
-            return (ratings.reduce((a,b)=>a+b,0) / ratings.length).toFixed(1);
-        }
-
+        // --- العرض والفلترة ---
         function listenToData() {
             db.ref('products').on('value', (snapshot) => {
                 const data = snapshot.val();
@@ -258,30 +270,21 @@
             const search = document.getElementById('searchBar').value.toLowerCase();
             let filtered = products.filter(p => (currentCat === "الكل" || p.cat === currentCat) && p.name.toLowerCase().includes(search));
             
-            grid.innerHTML = filtered.map(item => {
+            grid.innerHTML = filtered.reverse().map(item => {
                 const avg = getAvg(item.ratings);
                 return `
                 <div class="card">
-                    <img src="${item.img || 'https://via.placeholder.com/200'}">
+                    <img src="${item.img}">
                     <div style="position:absolute; top:10px; left:10px; display:flex; gap:5px;">
-                        <button onclick="editP(${item.id})" style="background:white; border:none; width:30px; height:30px; border-radius:50%; cursor:pointer;">✎</button>
-                        <button onclick="deleteP(${item.id})" style="background:#ff4757; color:white; border:none; width:30px; height:30px; border-radius:50%; cursor:pointer;">×</button>
+                        <button onclick="editP(${item.id})" style="background:white; border:none; width:30px; height:30px; border-radius:50%; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2)">✎</button>
+                        <button onclick="deleteP(${item.id})" style="background:#ff4757; color:white; border:none; width:30px; height:30px; border-radius:50%; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2)">×</button>
                     </div>
                     <div class="card-body">
-                        <h3 style="margin:0;">${item.name}</h3>
-                        <p class="product-desc">${item.desc || ''}</p>
-                        <div class="stars-display">
-                            ${'★'.repeat(Math.round(avg))}${'☆'.repeat(5 - Math.round(avg))} (${avg})
-                        </div>
+                        <h3 style="margin:0; font-size:1rem;">${item.name}</h3>
+                        <p class="product-desc">${item.desc || 'لا يوجد وصف'}</p>
+                        <div class="stars-display">${'★'.repeat(Math.round(avg))}${'☆'.repeat(5 - Math.round(avg))} (${avg})</div>
                         <div class="price-tag">${parseFloat(item.price).toFixed(3)} ر.ع</div>
                         <div class="qty-info">${item.qty <= 0 ? 'نفد ❌' : `متوفر: ${item.qty}`}</div>
-                        <div class="rating-input">
-                            <span onclick="addRating(${item.id}, 5)">★</span>
-                            <span onclick="addRating(${item.id}, 4)">★</span>
-                            <span onclick="addRating(${item.id}, 3)">★</span>
-                            <span onclick="addRating(${item.id}, 2)">★</span>
-                            <span onclick="addRating(${item.id}, 1)">★</span>
-                        </div>
                         <div class="btn-group">
                             <a href="https://wa.me/${item.tel}" class="btn-action bg-wa">واتساب</a>
                             <a href="tel:${item.tel}" class="btn-action bg-ph">اتصال</a>
@@ -291,21 +294,39 @@
             `}).join('');
         }
 
+        // --- ميزات إضافية ---
+        function getAvg(r) { return (r && r.length) ? (r.reduce((a,b)=>a+b,0)/r.length).toFixed(1) : 0; }
+        
+        function deleteP(id) { if(confirm("هل أنت متأكد من الحذف؟")) db.ref('products/' + id).remove(); }
+
         function editP(id) {
             const p = products.find(i => i.id === id);
             document.getElementById('editId').value = p.id;
             document.getElementById('pName').value = p.name;
-            document.getElementById('pDesc').value = p.desc || '';
+            document.getElementById('pDesc').value = p.desc;
             document.getElementById('pPrice').value = p.price;
             document.getElementById('pQty').value = p.qty;
             document.getElementById('pCat').value = p.cat;
             document.getElementById('pTel').value = p.tel;
             currentImg = p.img;
+            document.getElementById('preview').src = p.img;
+            document.getElementById('preview').style.display = 'block';
             switchTab('add', document.querySelectorAll('.nav-item')[1]);
         }
 
-        function deleteP(id) { if(confirm("حذف؟")) db.ref('products/' + id).remove(); }
-        function filterCat(c, el) { currentCat = c; document.querySelectorAll('.cat-chip').forEach(i => i.classList.remove('active')); el.classList.add('active'); render(); }
+        function clearSoldOut() {
+            if(confirm("سيتم حذف المنتجات التي كميتها 0 لتوفير مساحة. استمرار؟")) {
+                products.forEach(p => { if(p.qty <= 0) db.ref('products/'+p.id).remove(); });
+            }
+        }
+
+        function filterCat(c, el) {
+            currentCat = c;
+            document.querySelectorAll('.cat-chip').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+            render();
+        }
+
         function toggleTheme() {
             const t = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
             document.body.setAttribute('data-theme', t);
